@@ -1,1 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Egg Index — Egg Prices &amp; Minimum Wage, 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300..900&family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #1c1a1f;
+    --panel: #252229;
+    --panel-2: #2c2831;
+    --hairline: #3a3540;
+    --ink: #f2ede4;
+    --ink-dim: #a89fae;
+    --yolk: #f0c04a;
+    --yolk-soft: #f0c04a55;
 
+    --c-europe: #7fc6e0;
+    --c-asia: #f2a15a;
+    --c-africa: #d4738f;
+    --c-namerica: #6fbf8f;
+    --c-samerica: #c9a13b;
+    --c-oceania: #a68bd8;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: var(--bg);
+    background-image:
+      radial-gradient(circle at 15% 8%, #2a2732 0%, transparent 45%),
+      radial-gradient(circle at 90% 90%, #241f2a 0%, transparent 40%);
+    color: var(--ink);
+    font-family: 'Inter', system-ui, sans-serif;
+    min-height:100vh;
+  }
+
+  .wrap{
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 24px 64px;
+  }
+
+  header{ margin-bottom: 28px; }
+  .eyebrow{
+    font-family:'Space Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    color: var(--yolk);
+    margin: 0 0 10px;
+    text-transform: uppercase;
+  }
+  h1{
+    font-family:'Fraunces', serif;
+    font-optical-sizing: auto;
+    font-weight: 600;
+    font-size: clamp(36px, 6vw, 58px);
+    line-height: 0.98;
+    margin: 0 0 14px;
+    letter-spacing: -0.01em;
+  }
+  h1 em{
+    font-style: italic;
+    font-weight: 400;
+    color: var(--yolk);
+  }
+  .subtitle{
+    font-size: 15.5px;
+    line-height: 1.55;
+    color: var(--ink-dim);
+    max-width: 620px;
+    margin: 0;
+  }
+  .subtitle b{ color: var(--ink); font-weight: 600; }
+
+  /* controls */
+  .controls{
+    display:flex;
+    flex-wrap: wrap;
+    align-items:center;
+    justify-content: space-between;
+    gap: 14px;
+    margin: 32px 0 18px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .sort-group{
+    display:flex;
+    align-items:center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .control-label{
+    font-family:'Space Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-dim);
+    margin-right: 4px;
+  }
+  .sort-btn{
+    font-family:'Inter', sans-serif;
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--ink-dim);
+    background: transparent;
+    border: 1px solid var(--hairline);
+    padding: 8px 14px;
+    border-radius: 100px;
+    cursor: pointer;
+    transition: all .2s ease;
+  }
+  .sort-btn:hover{ color: var(--ink); border-color: #55505d; }
+  .sort-btn.active{
+    background: var(--yolk);
+    border-color: var(--yolk);
+    color: #241d0d;
+    font-weight: 700;
+  }
+  .dir-btn{
+    font-family:'Space Mono', monospace;
+    font-size: 12.5px;
+    color: var(--ink);
+    background: var(--panel);
+    border: 1px solid var(--hairline);
+    padding: 8px 14px;
+    border-radius: 100px;
+    cursor: pointer;
+    display:flex;
+    align-items:center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+  .dir-btn:hover{ border-color: #55505d; }
+  .dir-btn .arrow{ display:inline-block; transition: transform .3s ease; }
+  .dir-btn.asc .arrow{ transform: rotate(180deg); }
+
+  /* legend / continent filters */
+  .legend{
+    display:flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin-bottom: 22px;
+  }
+  .legend-item{
+    display:flex;
+    align-items:center;
+    gap: 7px;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    cursor: pointer;
+    user-select:none;
+    padding: 4px 2px;
+    transition: opacity .2s ease;
+  }
+  .legend-item.off{ opacity: 0.35; }
+  .legend-dot{
+    width: 10px; height:10px; border-radius: 50%;
+    box-shadow: 0 0 0 3px transparent;
+  }
+  .legend-item:hover .legend-dot{ box-shadow: 0 0 0 3px currentColor22; }
+
+  /* chart */
+  .chart-scroll{
+    position: relative;
+  }
+  .chart{
+    position: relative;
+    width: 100%;
+  }
+
+  .row{
+    position: absolute;
+    left: 0; right: 0;
+    height: 26px;
+    display:flex;
+    align-items:center;
+    transition: top .55s cubic-bezier(.4,0,.2,1), opacity .35s ease;
+  }
+  .row.hidden{ opacity: 0; pointer-events:none; }
+
+  .row .rank{
+    font-family:'Space Mono', monospace;
+    font-size: 10.5px;
+    color: var(--ink-dim);
+    width: 22px;
+    flex: none;
+    text-align:right;
+    margin-right: 8px;
+  }
+  .row .country{
+    width: 118px;
+    flex: none;
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-right: 10px;
+  }
+  .row .track{
+    flex: 1 1 auto;
+    height: 14px;
+    position: relative;
+    background: var(--panel);
+    border-radius: 7px;
+    overflow: visible;
+  }
+  .row .bar{
+    position: absolute;
+    top:0; left:0; height: 100%;
+    border-radius: 7px;
+    transition: width .55s cubic-bezier(.4,0,.2,1), background-color .3s ease;
+    opacity: 0.88;
+  }
+  .row .egg{
+    position: absolute;
+    top: 50%;
+    width: 11px; height: 14px;
+    background: var(--yolk);
+    border-radius: 50% 50% 45% 45% / 55% 55% 45% 45%;
+    transform: translate(-50%,-50%);
+    transition: left .55s cubic-bezier(.4,0,.2,1);
+    box-shadow: 0 0 0 2px var(--bg);
+  }
+  .row .value{
+    font-family:'Space Mono', monospace;
+    font-size: 11.5px;
+    color: var(--ink-dim);
+    width: 92px;
+    flex: none;
+    padding-left: 12px;
+    white-space: nowrap;
+  }
+
+  /* tooltip */
+  .tooltip{
+    position: fixed;
+    pointer-events: none;
+    background: #100e13;
+    border: 1px solid var(--hairline);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-size: 12.5px;
+    line-height: 1.6;
+    color: var(--ink);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.45);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity .12s ease, transform .12s ease;
+    z-index: 50;
+    min-width: 190px;
+  }
+  .tooltip.show{ opacity: 1; transform: translateY(0); }
+  .tooltip .t-title{
+    font-family:'Fraunces', serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 6px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .tooltip .t-dot{ width:8px; height:8px; border-radius:50%; flex:none; }
+  .tooltip .t-row{ display:flex; justify-content:space-between; gap: 20px; color: var(--ink-dim); }
+  .tooltip .t-row b{ color: var(--ink); font-weight: 600; font-family:'Space Mono', monospace; }
+
+  footer{
+    margin-top: 40px;
+    padding-top: 18px;
+    border-top: 1px solid var(--hairline);
+    font-size: 11.5px;
+    line-height: 1.6;
+    color: var(--ink-dim);
+  }
+
+  @media (max-width: 560px){
+    .row .country{ width: 84px; font-size: 11.5px; }
+    .row .value{ width: 66px; font-size: 10.5px; }
+    .controls{ flex-direction: column; align-items: flex-start; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .row, .row .bar, .row .egg, .dir-btn .arrow{ transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">79 countries · Jan 2026 snapshot</p>
+    <h1>The Egg <em>Index</em></h1>
+    <p class="subtitle">A dozen eggs and an hour of minimum wage don't buy the same thing everywhere. This chart ranks <b>79</b> countries by minimum wage, by egg price, and by <b>egg buying power</b> — how many dozens one month's minimum wage actually covers.</p>
+  </header>
+
+  <div class="controls">
+    <div class="sort-group">
+      <span class="control-label">Sort by</span>
+      <button class="sort-btn" data-sort="buyingPower">Egg buying power</button>
+      <button class="sort-btn" data-sort="minWage">Minimum wage</button>
+      <button class="sort-btn" data-sort="eggPrice">Egg price</button>
+    </div>
+    <button id="dirBtn" class="dir-btn"><span class="arrow">↓</span><span id="dirLabel">High to low</span></button>
+  </div>
+
+  <div class="legend" id="legend"></div>
+
+  <div class="chart-scroll">
+    <div class="chart" id="chart"></div>
+  </div>
+
+  <footer>
+    Sources: egg prices — GlobalProductPrices.com (Jan 2026). Minimum wages — WageIndicator, WorldPopulationReview, Deel, Playroll, Employsome, CXC Global, Mauve Group, Remotepeople, Eurofound and national labor ministries (2025–2026); figures for countries without a national statutory minimum reflect the most-cited sector/collective-bargaining floor. "Egg buying power" = dozens of eggs one month's minimum wage buys at local egg prices. Click a continent below the sort controls to filter.
+  </footer>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const DATA = [
+  {c:"Switzerland", cont:"Europe", egg:8.12, wage:4675.00, buy:575.7},
+  {c:"Norway", cont:"Europe", egg:7.18, wage:1869.00, buy:260.3},
+  {c:"Australia", cont:"Oceania", egg:7.18, wage:2691.00, buy:374.8},
+  {c:"New Zealand", cont:"Oceania", egg:7.06, wage:2316.00, buy:328.0},
+  {c:"Uruguay", cont:"South America", egg:6.25, wage:605.00, buy:96.8},
+  {c:"Czechia", cont:"Europe", egg:5.17, wage:1094.90, buy:211.8},
+  {c:"Sweden", cont:"Europe", egg:5.04, wage:2439.00, buy:483.9},
+  {c:"Belgium", cont:"Europe", egg:5.02, wage:2502.60, buy:498.5},
+  {c:"Denmark", cont:"Europe", egg:4.91, wage:2250.00, buy:458.2},
+  {c:"Austria", cont:"Europe", egg:4.90, wage:1651.00, buy:336.9},
+  {c:"UK", cont:"Europe", egg:4.87, wage:2849.00, buy:585.0},
+  {c:"Ireland", cont:"Europe", egg:4.78, wage:2879.50, buy:602.4},
+  {c:"Hong Kong", cont:"Asia", egg:4.71, wage:530.00, buy:112.5},
+  {c:"Italy", cont:"Europe", egg:4.65, wage:1470.00, buy:316.1},
+  {c:"Germany", cont:"Europe", egg:4.62, wage:2829.40, buy:612.4},
+  {c:"USA", cont:"North America", egg:4.62, wage:1256.20, buy:271.9},
+  {c:"Greece", cont:"Europe", egg:4.57, wage:1216.90, buy:266.3},
+  {c:"Israel", cont:"Asia", egg:4.47, wage:1680.20, buy:375.9},
+  {c:"Ghana", cont:"Africa", egg:4.46, wage:32.00, buy:7.2},
+  {c:"France", cont:"Europe", egg:4.27, wage:2160.10, buy:505.9},
+  {c:"Slovakia", cont:"Europe", egg:4.20, wage:1084.20, buy:258.1},
+  {c:"Lithuania", cont:"Europe", egg:4.20, wage:1366.20, buy:325.3},
+  {c:"Latvia", cont:"Europe", egg:4.06, wage:924.30, buy:227.7},
+  {c:"Romania", cont:"Europe", egg:4.04, wage:942.00, buy:233.2},
+  {c:"Poland", cont:"Europe", egg:3.96, wage:1349.60, buy:340.8},
+  {c:"Chile", cont:"South America", egg:3.96, wage:555.50, buy:140.3},
+  {c:"Finland", cont:"Europe", egg:3.82, wage:1613.00, buy:422.3},
+  {c:"Spain", cont:"Europe", egg:3.80, wage:1636.40, buy:430.6},
+  {c:"Hungary", cont:"Europe", egg:3.80, wage:993.00, buy:261.3},
+  {c:"Portugal", cont:"Europe", egg:3.61, wage:1271.40, buy:352.2},
+  {c:"Puerto Rico", cont:"North America", egg:3.58, wage:1680.00, buy:469.3},
+  {c:"Morocco", cont:"Africa", egg:3.51, wage:332.50, buy:94.7},
+  {c:"Netherlands", cont:"Europe", egg:3.45, wage:2249.00, buy:651.9},
+  {c:"Croatia", cont:"Europe", egg:3.44, wage:1244.20, buy:361.7},
+  {c:"South Africa", cont:"Africa", egg:3.20, wage:268.80, buy:84.0},
+  {c:"Mexico", cont:"North America", egg:3.16, wage:330.00, buy:104.4},
+  {c:"South Korea", cont:"Asia", egg:3.04, wage:1182.00, buy:388.8},
+  {c:"Japan", cont:"Asia", egg:2.96, wage:1244.70, buy:420.5},
+  {c:"Slovenia", cont:"Europe", egg:2.93, wage:1514.30, buy:516.8},
+  {c:"Canada", cont:"North America", egg:2.89, wage:2191.60, buy:758.3},
+  {c:"Colombia", cont:"South America", egg:2.73, wage:384.40, buy:140.8},
+  {c:"UA Emirates", cont:"Asia", egg:2.72, wage:1634.00, buy:600.7},
+  {c:"Ivory Coast", cont:"Africa", egg:2.71, wage:124.20, buy:45.8},
+  {c:"Singapore", cont:"Asia", egg:2.68, wage:1415.00, buy:528.0},
+  {c:"Nigeria", cont:"Africa", egg:2.66, wage:45.50, buy:17.1},
+  {c:"Malaysia", cont:"Asia", egg:2.60, wage:430.50, buy:165.6},
+  {c:"Serbia", cont:"Europe", egg:2.57, wage:881.60, buy:343.0},
+  {c:"Thailand", cont:"Asia", egg:2.54, wage:252.60, buy:99.4},
+  {c:"Jordan", cont:"Asia", egg:2.54, wage:409.00, buy:161.0},
+  {c:"Peru", cont:"South America", egg:2.49, wage:331.80, buy:133.3},
+  {c:"Turkey", cont:"Asia", egg:2.47, wage:759.40, buy:307.4},
+  {c:"Brazil", cont:"South America", egg:2.42, wage:303.80, buy:125.5},
+  {c:"Tanzania", cont:"Africa", egg:2.37, wage:32.00, buy:13.5},
+  {c:"Saudi Arabia", cont:"Asia", egg:2.34, wage:1067.00, buy:456.0},
+  {c:"Ecuador", cont:"South America", egg:2.33, wage:482.00, buy:206.9},
+  {c:"Cameroon", cont:"Africa", egg:2.32, wage:60.10, buy:25.9},
+  {c:"China", cont:"Asia", egg:2.28, wage:391.70, buy:171.8},
+  {c:"Philippines", cont:"Asia", egg:2.23, wage:254.60, buy:114.2},
+  {c:"Russia", cont:"Europe", egg:2.21, wage:242.50, buy:109.7},
+  {c:"Kuwait", cont:"Asia", egg:2.21, wage:195.40, buy:88.4},
+  {c:"Ukraine", cont:"Europe", egg:2.10, wage:202.90, buy:96.6},
+  {c:"Vietnam", cont:"Asia", egg:2.10, wage:212.40, buy:101.1},
+  {c:"Paraguay", cont:"South America", egg:2.09, wage:405.90, buy:194.2},
+  {c:"Tunisia", cont:"Africa", egg:2.01, wage:149.00, buy:74.1},
+  {c:"Dominican Republic", cont:"North America", egg:2.01, wage:269.90, buy:134.3},
+  {c:"Costa Rica", cont:"North America", egg:1.94, wage:726.00, buy:374.2},
+  {c:"India", cont:"Asia", egg:1.89, wage:43.20, buy:22.9},
+  {c:"Kenya", cont:"Africa", egg:1.89, wage:116.90, buy:61.9},
+  {c:"Guatemala", cont:"North America", egg:1.89, wage:513.10, buy:271.5},
+  {c:"Uganda", cont:"Africa", egg:1.83, wage:35.10, buy:19.2},
+  {c:"Bolivia", cont:"South America", egg:1.81, wage:469.00, buy:259.1},
+  {c:"Kazakhstan", cont:"Asia", egg:1.80, wage:161.50, buy:89.7},
+  {c:"Azerbaijan", cont:"Asia", egg:1.80, wage:235.30, buy:130.7},
+  {c:"Indonesia", cont:"Asia", egg:1.79, wage:343.80, buy:192.1},
+  {c:"Zambia", cont:"Africa", egg:1.77, wage:52.80, buy:29.8},
+  {c:"Sri Lanka", cont:"Asia", egg:1.69, wage:56.50, buy:33.4},
+  {c:"Egypt", cont:"Africa", egg:1.57, wage:146.70, buy:93.4},
+  {c:"Bangladesh", cont:"Asia", egg:1.55, wage:101.50, buy:65.5},
+  {c:"Pakistan", cont:"Asia", egg:1.40, wage:129.90, buy:92.8}
+];
+
+const CONT_COLORS = {
+  "Europe": "var(--c-europe)",
+  "Asia": "var(--c-asia)",
+  "Africa": "var(--c-africa)",
+  "North America": "var(--c-namerica)",
+  "South America": "var(--c-samerica)",
+  "Oceania": "var(--c-oceania)"
+};
+const CONT_ORDER = ["Europe","Asia","Africa","North America","South America","Oceania"];
+
+const METRICS = {
+  buyingPower: { key: "buy",  label: "eggs/mo",  fmt: v => v.toFixed(1)+" doz/mo" },
+  minWage:     { key: "wage", label: "USD/mo",   fmt: v => "$"+v.toLocaleString(undefined,{maximumFractionDigits:0}) },
+  eggPrice:    { key: "egg",  label: "USD/doz",  fmt: v => "$"+v.toFixed(2) }
+};
+
+let state = {
+  sort: "buyingPower",
+  dir: "desc",
+  activeContinents: new Set(CONT_ORDER)
+};
+
+const ROW_H = 26;
+const chartEl = document.getElementById('chart');
+const tooltip = document.getElementById('tooltip');
+
+// build legend
+const legendEl = document.getElementById('legend');
+CONT_ORDER.forEach(cont=>{
+  const item = document.createElement('div');
+  item.className = 'legend-item';
+  item.dataset.cont = cont;
+  item.style.color = CONT_COLORS[cont];
+  item.innerHTML = `<span class="legend-dot" style="background:${CONT_COLORS[cont]}"></span><span>${cont}</span>`;
+  item.addEventListener('click', ()=>{
+    if(state.activeContinents.has(cont)){
+      if(state.activeContinents.size>1) state.activeContinents.delete(cont);
+    } else {
+      state.activeContinents.add(cont);
+    }
+    item.classList.toggle('off', !state.activeContinents.has(cont));
+    render();
+  });
+  legendEl.appendChild(item);
+});
+
+// build rows once, reuse elements
+const rowEls = {};
+DATA.forEach(d=>{
+  const row = document.createElement('div');
+  row.className = 'row';
+  row.innerHTML = `
+    <span class="rank"></span>
+    <span class="country">${d.c}</span>
+    <span class="track"><span class="bar" style="background:${CONT_COLORS[d.cont]}"></span><span class="egg"></span></span>
+    <span class="value"></span>
+  `;
+  row.addEventListener('mousemove', (e)=> showTooltip(e, d));
+  row.addEventListener('mouseleave', hideTooltip);
+  chartEl.appendChild(row);
+  rowEls[d.c] = row;
+});
+
+function showTooltip(e, d){
+  tooltip.innerHTML = `
+    <div class="t-title"><span class="t-dot" style="background:${CONT_COLORS[d.cont]}"></span>${d.c}</div>
+    <div class="t-row"><span>Egg price</span><b>$${d.egg.toFixed(2)}/doz</b></div>
+    <div class="t-row"><span>Min. wage</span><b>$${d.wage.toLocaleString(undefined,{maximumFractionDigits:0})}/mo</b></div>
+    <div class="t-row"><span>Buying power</span><b>${d.buy.toFixed(1)} doz/mo</b></div>
+    <div class="t-row"><span>Continent</span><b style="font-family:'Inter',sans-serif;">${d.cont}</b></div>
+  `;
+  tooltip.classList.add('show');
+  const x = e.clientX, y = e.clientY;
+  const tw = 220, th = 130;
+  let left = x + 16, top = y + 16;
+  if(left + tw > window.innerWidth) left = x - tw - 16;
+  if(top + th > window.innerHeight) top = y - th - 16;
+  tooltip.style.left = left+'px';
+  tooltip.style.top = top+'px';
+}
+function hideTooltip(){ tooltip.classList.remove('show'); }
+
+function render(){
+  const metric = METRICS[state.sort];
+  const visible = DATA.filter(d=>state.activeContinents.has(d.cont));
+  const sorted = [...visible].sort((a,b)=> b[metric.key]-a[metric.key]);
+  if(state.dir === 'asc') sorted.reverse();
+
+  const maxVal = Math.max(...visible.map(d=>d[metric.key]));
+  chartEl.style.height = (sorted.length * ROW_H + 4) + 'px';
+
+  const visibleSet = new Set(visible.map(d=>d.c));
+
+  DATA.forEach(d=>{
+    const row = rowEls[d.c];
+    if(!visibleSet.has(d.c)){
+      row.classList.add('hidden');
+      return;
+    }
+    row.classList.remove('hidden');
+    const idx = sorted.indexOf(d);
+    row.style.top = (idx*ROW_H) + 'px';
+    row.querySelector('.rank').textContent = idx+1;
+    const pct = Math.max(2, (d[metric.key]/maxVal*100));
+    row.querySelector('.bar').style.width = pct + '%';
+    row.querySelector('.egg').style.left = pct + '%';
+    row.querySelector('.value').textContent = metric.fmt(d[metric.key]);
+  });
+}
+
+// sort buttons
+document.querySelectorAll('.sort-btn').forEach(btn=>{
+  if(btn.dataset.sort === state.sort) btn.classList.add('active');
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.sort-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    state.sort = btn.dataset.sort;
+    render();
+  });
+});
+
+// direction toggle
+const dirBtn = document.getElementById('dirBtn');
+const dirLabel = document.getElementById('dirLabel');
+dirBtn.addEventListener('click', ()=>{
+  state.dir = state.dir === 'desc' ? 'asc' : 'desc';
+  dirBtn.classList.toggle('asc', state.dir==='asc');
+  dirLabel.textContent = state.dir === 'desc' ? 'High to low' : 'Low to high';
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
